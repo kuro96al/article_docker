@@ -11,8 +11,8 @@ RUN apk update && \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apk add git
-RUN git clone https://github.com/kuro96al/steemit_test.git
-WORKDIR /app/steemit_test
+RUN git clone https://github.com/kuro96al/article2
+WORKDIR /app/article2
 RUN npm install 
 
 COPY . .
