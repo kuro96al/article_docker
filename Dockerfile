@@ -11,7 +11,7 @@ RUN apk update && \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apk add git
-RUN git clone https://github.com/kuro96al/article2
+RUN git clone https://github.com/kuro96al/article_docker.git
 WORKDIR /app/article2
 RUN npm install 
 
