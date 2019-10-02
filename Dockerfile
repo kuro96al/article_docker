@@ -12,7 +12,7 @@ RUN apk update && \
 
 RUN apk add git
 RUN git clone https://github.com/kuro96al/article_docker.git
-WORKDIR /app/article2
+WORKDIR /app/article_docker
 RUN npm install 
 
 COPY . .
