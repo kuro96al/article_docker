@@ -1,27 +1,47 @@
 <template>
-<div id="chat">
+<div id="article">
 
     <!--　Firebase から取得したリストを描画（トランジション付き）　-->
-    <transition-group name="chat" tag="div" class="list content">
-      <section v-for="{ key, name, image, message } in chat" :key="key" class="item">
-        <div class="item-image"><img :src="image" width="40" height="40"></div>
-        <div class="item-detail">
-          <div class="item-name">{{ name }}</div>
-          <div class="item-message">
-            <nl2br tag="div" :text="message"/>
-          </div>
-        </div>
-      </section>
+    <transition-group name="article" tag="div" class="list content">
+      <section v-for="{ key, name, image, title, text, tags, summary } in article" :key="key" class="item">
+	 <v-card
+    max-width="344"
+    class="mx-auto"
+  >
+    <v-list-item>
+      <v-list-item-avatar color="grey"><img :src="image"></v-list-item-avatar>
+      <v-list-item-content>
+        <v-list-item-title class="headline">{{title}}</v-list-item-title>
+        <v-list-item-subtitle>by {{name}}</v-list-item-subtitle>
+      </v-list-item-content>
+    </v-list-item>
+
+    <v-card-text> {{summary}}</v-card-text> 
+       <v-chip v-for="tag in tags">{{tag}}</v-chip>
+    <v-card-actions>
+      <v-btn
+        text
+        color="deep-purple accent-4"
+      >
+        Read
+      </v-btn>
+      <v-btn
+        text
+        color="deep-purple accent-4"
+      >
+        Bookmark
+      </v-btn>
+      <div class="flex-grow-1"></div>
+      <v-btn icon>
+        <v-icon>mdi-heart</v-icon>
+      </v-btn>
+      <v-btn icon>
+        <v-icon>mdi-share-variant</v-icon>
+      </v-btn>
+    </v-card-actions>
+  </v-card>
+    </section>
     </transition-group>
-  
-    <!-- 入力フォーム -->
-    <form action="" @submit.prevent="doSend" class="form">
-      <textarea
-        v-model="input"
-        :disabled="!user.uid"
-        @keydown.enter.exact.prevent="doSend"></textarea>
-      <button type="submit" :disabled="!user.uid" class="send-button">Send</button>
-    </form>
   </div>
 </template>
 
@@ -35,16 +55,16 @@ export default {
   data() {
     return {
       user: {},  // ユーザー情報
-      chat: [],  // 取得したメッセージを入れる配列
-      input: ''  // 入力したメッセージ
+      article: [],  // 取得したメッセージを入れる配列
+      text: ''
     }
   },
   created() {
     firebase.auth().onAuthStateChanged(user => {
       this.user = user ? user : {}
-      const ref_message = firebase.database().ref('message')
+      const ref_message = firebase.database().ref('article')
       if (user) {
-        this.chat = []
+        this.article = []
         // message に変更があったときのハンドラを登録
         ref_message.limitToLast(10).on('child_added', this.childAdded)
       } else {
@@ -72,12 +92,15 @@ export default {
     // 受け取ったメッセージをchatに追加
     // データベースに新しい要素が追加されると随時呼び出される
     childAdded(snap) {
-      const message = snap.val()
-      this.chat.push({
+      const article = snap.val()
+      this.article.push({
         key: snap.key,
-        name: message.name,
-        image: message.image,
-        message: message.message
+        name: article.name,
+        image: article.image,
+        title: article.title,
+	text: article.text,
+	tags: article.tags,
+	summary: article.text.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g,'').slice(0,20)
       })
       this.scrollBottom()
     },

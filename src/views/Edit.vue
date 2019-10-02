@@ -3,13 +3,11 @@
     <form>
       <v-text-field
         v-model="title"
-        v-validate="'required|max:30'"
-        :counter="30"
         label="タイトル"
         required
       ></v-text-field>
       <input-tag
-        v-model="tag"
+        v-model="tags"
         label="タグ"
         required
       ></input-tag>
@@ -35,7 +33,7 @@ export default {
       chat: [],  // 取得したメッセージを入れる配列
       title: '',  // 入力したメッセージ
       text: '',
-      tag: []
+      tags: []
     }
   },
   created() {
@@ -81,18 +79,19 @@ export default {
       this.scrollBottom()
     },
     doSend() {
-      if (this.user.uid && this.input.length) {
+	console.log(this.tags)
+      if (this.user.uid && this.text.length) {
         // firebase にメッセージを追加
         firebase.database().ref('article').push({
-          title: this.input,
+          title: this.title,
           text: this.text,
-          tag: this.tag,
+          tags: this.tags,
           name: this.user.displayName,
-          image: this.user.photoURL
+	  image: this.user.photoURL
         }, () => {
           this.title = '' // フォームを空にする
           this.text = '' // フォームを空にする
-          this.tag = [] // フォームを空にする
+          this.tags = [] // フォームを空にする
         })
       }
     }
