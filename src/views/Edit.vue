@@ -36,18 +36,9 @@ export default {
       tags: []
     }
   },
-  created() {
+created() {
     firebase.auth().onAuthStateChanged(user => {
       this.user = user ? user : {}
-      const ref_message = firebase.database().ref('message')
-      if (user) {
-        this.chat = []
-        // message に変更があったときのハンドラを登録
-        ref_message.limitToLast(10).on('child_added', this.childAdded)
-      } else {
-        // message に変更があったときのハンドラを解除
-        ref_message.limitToLast(10).off('child_added', this.childAdded)
-      }
     })
   },
   methods: {
@@ -82,17 +73,17 @@ export default {
 	console.log(this.tags)
       if (this.user.uid && this.text.length) {
         // firebase にメッセージを追加
-        firebase.database().ref('article').push({
+        firebase.firestore().collection('note').add({
           title: this.title,
           text: this.text,
           tags: this.tags,
           name: this.user.displayName,
 	  image: this.user.photoURL
-        }, () => {
-          this.title = '' // フォームを空にする
-          this.text = '' // フォームを空にする
-          this.tags = [] // フォームを空にする
-        })
+        }).then(ref => {
+          this.title = '' // ...........................
+          this.text = '' // ...........................
+          this.tags = [] // ...........................
+})
       }
     }
   }

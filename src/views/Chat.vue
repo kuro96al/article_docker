@@ -1,8 +1,15 @@
 <template>
 <div id="article">
-
+      <div v-if="user.uid" key="login">
+        [{{ user.displayName }}]
+        <button type="button" @click="doLogout">ログアウト</button>
+      </div>
+      <!-- 未ログイン時にはログインボタンを表示 -->
+      <div v-else key="logout">
+        <button type="button" @click="doLogin">ログイン</button>
+      </div>
     <!--　Firebase から取得したリストを描画（トランジション付き）　-->
-    <transition-group name="article" tag="div" class="list content">
+
       <section v-for="{ key, name, image, title, text, tags, summary } in article" :key="key" class="item">
 	 <v-card
     max-width="344"
@@ -41,7 +48,6 @@
     </v-card-actions>
   </v-card>
     </section>
-    </transition-group>
   </div>
 </template>
 
@@ -56,23 +62,36 @@ export default {
     return {
       user: {},  // ユーザー情報
       article: [],  // 取得したメッセージを入れる配列
-      text: ''
+      text: '',
     }
   },
-  created() {
-    firebase.auth().onAuthStateChanged(user => {
-      this.user = user ? user : {}
-      const ref_message = firebase.database().ref('article')
-      if (user) {
-        this.article = []
-        // message に変更があったときのハンドラを登録
-        ref_message.limitToLast(10).on('child_added', this.childAdded)
-      } else {
-        // message に変更があったときのハンドラを解除
-        ref_message.limitToLast(10).off('child_added', this.childAdded)
-      }
-    })
-  },
+
+mounted() {
+console.log(this.$route)
+const ref_message = firebase.firestore().collection('note').where("tags","array-contains",this.$route.params.word).get()
+  .then(snapshot => {
+    if (snapshot.empty) {
+      console.log('No matching documents.');
+      return;
+    }
+    this.loading=true;
+    snapshot.forEach(doc => {
+      console.log(doc.id, '=>', doc.data());
+	const article = doc.data();
+      this.article.push({
+        name: article.name,
+        image: article.image,
+        title: article.title,
+        text: article.text,
+        tags: article.tags,
+        summary: article.text.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g,'').slice(0,20)
+      })
+	});
+  })
+  .catch(err => {
+    console.log('Error getting documents', err);
+  });
+},
   methods: {
     // ログイン処理
     doLogin() {
@@ -91,10 +110,9 @@ export default {
     },
     // 受け取ったメッセージをchatに追加
     // データベースに新しい要素が追加されると随時呼び出される
-    childAdded(snap) {
-      const article = snap.val()
+    childAdded(article) {
+	console.log(article)
       this.article.push({
-        key: snap.key,
         name: article.name,
         image: article.image,
         title: article.title,
